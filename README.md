@@ -89,13 +89,13 @@ const client = new HttpClient({
 
 #### METHODS
 
-Method Description
-get(options) GET request
-post(options) POST request
-put(options) PUT request
-patch(options) PATCH request
-delete(options) DELETE request
-request(options) Custom HTTP request
+* Method Description
+* get(options) GET request
+* post(options) POST request
+* put(options) PUT request
+* patch(options) PATCH request
+* delete(options) DELETE request
+* request(options) Custom HTTP request
 
 ### COMMON EXAMPLES
 
@@ -221,25 +221,25 @@ Does NOT retry:
 
 #### EXPONENTIAL BACKOFF
 
-Attempt 1 → 1 second
-Attempt 2 → 2 seconds
-Attempt 3 → 4 seconds
-Attempt 4 → 8 seconds
-Attempt 5+ → 30 seconds (capped)
+* Attempt 1 → 1 second
+* Attempt 2 → 2 seconds
+* Attempt 3 → 4 seconds
+* Attempt 4 → 8 seconds
+* Attempt 5+ → 30 seconds (capped)
 
 
 
 ## FEATURES
 
-✅ Native Fetch API (no external dependencies)
-✅ Unified options-based API with uri property
-✅ Smart retry logic with exponential backoff
-✅ Automatic timeout management
-✅ Automatic JSON serialization/deserialization
-✅ Query parameter builder
-✅ Request/response logging hooks
-✅ URI validation
-✅ Rich error context
+* ✅ Native Fetch API (no external dependencies)
+* ✅ Unified options-based API with uri property
+* ✅ Smart retry logic with exponential backoff
+* ✅ Automatic timeout management
+* ✅ Automatic JSON serialization/deserialization
+* ✅ Query parameter builder
+* ✅ Request/response logging hooks
+* ✅ URI validation
+* ✅ Rich error context
 
 
 ## REQUIREMENTS
@@ -303,21 +303,21 @@ await client.get({
 
 #### BEST PRACTICES
 
-✅ Reuse HttpClient instances
-✅ Configure appropriate timeout values
-✅ Enable logging for debugging
-✅ Handle errors with try/catch
-✅ Use idempotency keys for critical operations
-✅ Validate input before sending
-✅ Use environment variables for URLs
-✅ Override retries when needed
+* ✅ Reuse HttpClient instances
+* ✅ Configure appropriate timeout values
+* ✅ Enable logging for debugging
+* ✅ Handle errors with try/catch
+* ✅ Use idempotency keys for critical operations
+* ✅ Validate input before sending
+* ✅ Use environment variables for URLs
+* ✅ Override retries when needed
 
-❌ Don't create new HttpClient per request
-❌ Don't ignore error details
-❌ Don't set extremely long timeouts
-❌ Don't retry non-idempotent operations
-❌ Don't log sensitive data
-❌ Don't hardcode URLs
+* ❌ Don't create new HttpClient per request
+* ❌ Don't ignore error details
+* ❌ Don't set extremely long timeouts
+* ❌ Don't retry non-idempotent operations
+* ❌ Don't log sensitive data
+* ❌ Don't hardcode URLs
 
 
 #### SUPPORT
@@ -325,12 +325,12 @@ await client.get({
 
 This developer-focused guide is:
 
-✅ **Concise** - Straight to the point
-✅ **Practical** - Real code examples
-✅ **Complete** - All essential information included
-✅ **Easy to scan** - Clear sections and formatting
-✅ **Git-friendly** - Perfect for README.md
-✅ **Developer-centric** - Focuses on what matters for coding
-✅ **No version history** - Removed as requested
+* ✅ **Concise** - Straight to the point
+* ✅ **Practical** - Real code examples
+* ✅ **Complete** - All essential information included
+* ✅ **Easy to scan** - Clear sections and formatting
+* ✅ **Git-friendly** - Perfect for README.md
+* ✅ **Developer-centric** - Focuses on what matters for coding
+* ✅ **No version history** - Removed as requested
 
 Perfect for developers who need quick reference without fluff! 🚀
