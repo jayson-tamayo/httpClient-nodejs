@@ -1,11 +1,6 @@
 /**
  * Reusable HTTP Client using native fetch
- * Replaces npm request-promise with native fetch API
- *
- * @class HttpClient
- * @example
- * const client = new HttpClient({ timeout: 30000, maxRetries: 3 });
- * const data = await client.get('https://api.example.com/users', { qs: { id: 123 } });
+ * Replaces request-promise with native fetch API
  */
 class HttpClient {
   /**
@@ -43,19 +38,19 @@ class HttpClient {
   }
 
   /**
-   * Validate URL format
+   * Validate URI format
    * @private
-   * @param {string} url - URL to validate
-   * @throws {Error} If URL is invalid
+   * @param {string} uri - URI to validate
+   * @throws {Error} If URI is invalid
    */
-  validateUrl(url) {
-    if (!url || typeof url !== 'string' || url.trim().length === 0) {
-      throw new Error('Invalid URL: must be a non-empty string');
+  validateUri(uri) {
+    if (!uri || typeof uri !== 'string' || uri.trim().length === 0) {
+      throw new Error('Invalid URI: must be a non-empty string');
     }
     try {
-      new URL(url);
+      new URL(uri);
     } catch (error) {
-      throw new Error(`Invalid URL format: ${url}`);
+      throw new Error(`Invalid URI format: ${uri}`);
     }
   }
 
@@ -83,17 +78,17 @@ class HttpClient {
   }
 
   /**
-   * Build full URL with query parameters
+   * Build full URI with query parameters
    * @private
-   * @param {string} baseUrl - Base URL
+   * @param {string} baseUri - Base URI
    * @param {Object} [params] - Query parameters
-   * @returns {string} - Full URL with query string
-   * @throws {Error} If URL is invalid
+   * @returns {string} - Full URI with query string
+   * @throws {Error} If URI is invalid
    */
-  buildUrl(baseUrl, params) {
-    this.validateUrl(baseUrl);
+  buildUri(baseUri, params) {
+    this.validateUri(baseUri);
     const queryString = this.buildQueryString(params);
-    return `${baseUrl}${queryString}`;
+    return `${baseUri}${queryString}`;
   }
 
   /**
@@ -103,7 +98,10 @@ class HttpClient {
    * @returns {number} - Delay in milliseconds
    */
   calculateBackoffDelay(attempt) {
-    const exponentialDelay = this.retryDelay * Math.pow(this.EXPONENTIAL_BACKOFF_BASE, attempt);
+    const exponentialDelay = this.retryDelay * Math.pow(
+      this.EXPONENTIAL_BACKOFF_BASE,
+      attempt
+    );
     // Cap the backoff delay to prevent excessive waits
     return Math.min(exponentialDelay, this.MAX_BACKOFF_DELAY);
   }
@@ -162,8 +160,8 @@ class HttpClient {
 
   /**
    * Make HTTP request with timeout, retry, and error handling
-   * @param {string} url - Request URL
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
    * @param {string} [options.method='GET'] - HTTP method
    * @param {Object} [options.headers] - Custom headers
    * @param {Object|null} [options.body] - Request body (will be JSON stringified)
@@ -175,8 +173,9 @@ class HttpClient {
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails after all retries
    */
-  async request(url, options = {}) {
+  async request(options = {}) {
     const {
+      uri,
       method = 'GET',
       headers = {},
       body = null,
@@ -188,12 +187,15 @@ class HttpClient {
     } = options;
 
     // Validate inputs
-    this.validateUrl(url);
+    if (!uri) {
+      throw new Error('Request options must include a "uri" property');
+    }
+    this.validateUri(uri);
     if (body !== null && typeof body !== 'object') {
       throw new TypeError('Request body must be an object or null');
     }
 
-    const fullUrl = this.buildUrl(url, qs);
+    const fullUri = this.buildUri(uri, qs);
     let lastError;
 
     // Retry loop
@@ -223,22 +225,18 @@ class HttpClient {
 
         // Call request hook for logging
         if (this.onRequest) {
-          this.onRequest({ url: fullUrl, method, headers: requestInit.headers });
+          this.onRequest({ uri: fullUri, method, headers: requestInit.headers });
         }
 
         // Execute request
-        const response = await fetch(fullUrl, requestInit);
+        const response = await fetch(fullUri, requestInit);
 
         // Clear timeout on successful response
         clearTimeout(timeoutId);
 
         // Call response hook for logging
         if (this.onResponse) {
-          this.onResponse({
-            url: fullUrl,
-            status: response.status,
-            statusText: response.statusText,
-          });
+          this.onResponse({ uri: fullUri, status: response.status, statusText: response.statusText });
         }
 
         // Handle non-2xx responses
@@ -247,7 +245,7 @@ class HttpClient {
           const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
           error.statusCode = response.status;
           error.body = errorBody;
-          error.url = fullUrl;
+          error.uri = fullUri;
           error.method = method;
 
           // Check if this error should be retried
@@ -274,7 +272,7 @@ class HttpClient {
         // Handle timeout errors
         if (error.name === 'AbortError') {
           const timeoutError = new Error(`Request timeout after ${timeout}ms`);
-          timeoutError.url = fullUrl;
+          timeoutError.uri = fullUri;
           timeoutError.method = method;
           timeoutError.originalError = error;
 
@@ -294,6 +292,7 @@ class HttpClient {
           continue;
         }
 
+        // No more retries; throw the error
         throw error;
       }
     }
@@ -321,60 +320,90 @@ class HttpClient {
 
   /**
    * GET request
-   * @param {string} url - Request URL
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
+   * @param {Object} [options.qs] - Query string parameters
+   * @param {number} [options.timeout] - Request timeout in milliseconds
+   * @param {boolean} [options.json=true] - Parse response as JSON
+   * @param {number} [options.retry] - Number of retries
+   * @param {number} [options.retryDelay] - Retry delay
+   * @param {Object} [options.headers] - Custom headers
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails
    */
-  get(url, options = {}) {
-    return this.request(url, { ...options, method: 'GET' });
+  get(options = {}) {
+    return this.request({ ...options, method: 'GET' });
   }
 
   /**
    * POST request
-   * @param {string} url - Request URL
-   * @param {Object|null} [body] - Request body
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
+   * @param {Object|null} [options.body] - Request body
+   * @param {Object} [options.qs] - Query string parameters
+   * @param {number} [options.timeout] - Request timeout in milliseconds
+   * @param {boolean} [options.json=true] - Parse response as JSON
+   * @param {number} [options.retry] - Number of retries
+   * @param {number} [options.retryDelay] - Retry delay
+   * @param {Object} [options.headers] - Custom headers
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails
    */
-  post(url, body = null, options = {}) {
-    return this.request(url, { ...options, method: 'POST', body });
+  post(options = {}) {
+    return this.request({ ...options, method: 'POST' });
   }
 
   /**
    * PUT request
-   * @param {string} url - Request URL
-   * @param {Object|null} [body] - Request body
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
+   * @param {Object|null} [options.body] - Request body
+   * @param {Object} [options.qs] - Query string parameters
+   * @param {number} [options.timeout] - Request timeout in milliseconds
+   * @param {boolean} [options.json=true] - Parse response as JSON
+   * @param {number} [options.retry] - Number of retries
+   * @param {number} [options.retryDelay] - Retry delay
+   * @param {Object} [options.headers] - Custom headers
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails
    */
-  put(url, body = null, options = {}) {
-    return this.request(url, { ...options, method: 'PUT', body });
+  put(options = {}) {
+    return this.request({ ...options, method: 'PUT' });
   }
 
   /**
    * PATCH request
-   * @param {string} url - Request URL
-   * @param {Object|null} [body] - Request body
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
+   * @param {Object|null} [options.body] - Request body
+   * @param {Object} [options.qs] - Query string parameters
+   * @param {number} [options.timeout] - Request timeout in milliseconds
+   * @param {boolean} [options.json=true] - Parse response as JSON
+   * @param {number} [options.retry] - Number of retries
+   * @param {number} [options.retryDelay] - Retry delay
+   * @param {Object} [options.headers] - Custom headers
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails
    */
-  patch(url, body = null, options = {}) {
-    return this.request(url, { ...options, method: 'PATCH', body });
+  patch(options = {}) {
+    return this.request({ ...options, method: 'PATCH' });
   }
 
   /**
    * DELETE request
-   * @param {string} url - Request URL
-   * @param {Object} [options] - Request options
+   * @param {Object} options - Request options
+   * @param {string} options.uri - Request URI (required)
+   * @param {Object} [options.qs] - Query string parameters
+   * @param {number} [options.timeout] - Request timeout in milliseconds
+   * @param {boolean} [options.json=true] - Parse response as JSON
+   * @param {number} [options.retry] - Number of retries
+   * @param {number} [options.retryDelay] - Retry delay
+   * @param {Object} [options.headers] - Custom headers
    * @returns {Promise<Object|string>} - Response data
    * @throws {Error} If request fails
    */
-  delete(url, options = {}) {
-    return this.request(url, { ...options, method: 'DELETE' });
+  delete(options = {}) {
+    return this.request({ ...options, method: 'DELETE' });
   }
 }
 
@@ -385,4 +414,5 @@ module.exports = new HttpClient({
   retryDelay: 1000,
 });
 
+// Also export class for custom instantiation
 module.exports.HttpClient = HttpClient;
