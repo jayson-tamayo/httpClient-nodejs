@@ -6,13 +6,13 @@ A lightweight, reusable HTTP client for Node.js built on native Fetch API.
 
 ### Installation
 
-```javascript
+```
 const client = require('./httpClient');
-```javascript
+```
 
 
-BASIC USAGE
-```javascript
+#### BASIC USAGE
+```
 // GET
 const users = await client.get({
   uri: 'https://api.example.com/users',
@@ -41,21 +41,21 @@ const patched = await client.patch({
 await client.delete({
   uri: 'https://api.example.com/users/123'
 });
-```javascript
+```
 
 
-CONFIGURATION
+### CONFIGURATION
 
 
-DEFAULT SINGLETON
-```javascript
+#### DEFAULT SINGLETON
+```
 const client = require('./httpClient');
 // timeout: 30000ms, maxRetries: 3, retryDelay: 1000ms
-```javascript
+```
 
 
-CUSTOM INSTANCE
-```javascript
+#### CUSTOM INSTANCE
+```
 const { HttpClient } = require('./httpClient');
 
 const client = new HttpClient({
@@ -65,14 +65,14 @@ const client = new HttpClient({
   onRequest: (req) => console.log(`→ ${req.method} ${req.uri}`),
   onResponse: (res) => console.log(`← ${res.status}`)
 });
-```javascript
+```
 
 
-API REFERENCE
+### API REFERENCE
 
 
-OPTIONS OBJECT
-
+#### OPTIONS OBJECT
+```
 {
   uri: string,              // Required: Request URI
   method: string,           // Optional: HTTP method (default: 'GET')
@@ -84,38 +84,43 @@ OPTIONS OBJECT
   retryDelay: number,       // Optional: Initial retry delay in ms
   json: boolean             // Optional: Parse response as JSON (default: true)
 }
+```
 
 
+#### METHODS
 
-METHODS
+Method Description
+get(options) GET request
+post(options) POST request
+put(options) PUT request
+patch(options) PATCH request
+delete(options) DELETE request
+request(options) Custom HTTP request
 
-Method Description get(options) GET request post(options) POST request put(options) PUT request patch(options) PATCH request delete(options) DELETE request request(options) Custom HTTP request
+### COMMON EXAMPLES
 
 
-COMMON EXAMPLES
-
-
-WITH QUERY PARAMETERS
-```javascript
+#### WITH QUERY PARAMETERS
+```
 await client.get({
   uri: 'https://api.example.com/users',
   qs: { active: true, page: 1 }
 });
-```javascript
+```
 
 
-WITH CUSTOM HEADERS
-```javascript
+#### WITH CUSTOM HEADERS
+```
 await client.post({
   uri: 'https://api.example.com/users',
   body: { name: 'John' },
   headers: { 'X-Api-Key': 'secret', 'Authorization': 'Bearer token' }
 });
-```javascript
+```
 
 
-WITH AUTHENTICATION
-```javascript
+#### WITH AUTHENTICATION
+```
 // Bearer Token
 await client.get({
   uri: 'https://api.example.com/users',
@@ -127,22 +132,22 @@ await client.get({
   uri: 'https://api.example.com/users',
   headers: { 'X-Api-Key': apiKey }
 });
-```javascript
+```
 
 
-PER-REQUEST OVERRIDES
-```javascript
+#### PER-REQUEST OVERRIDES
+```
 await client.get({
   uri: 'https://api.example.com/slow-endpoint',
   timeout: 120000,    // Override default timeout
   retry: 5,           // Override default retries
   retryDelay: 3000    // Override default delay
 });
-```javascript
+```
 
 
-DIRECT REQUEST METHOD
-```javascript
+#### DIRECT REQUEST METHOD
+```
 const response = await client.request({
   uri: 'https://api.example.com/data',
   method: 'POST',
@@ -153,25 +158,25 @@ const response = await client.request({
   retry: 3,
   json: true
 });
-```javascript
+```
 
 
-ERROR HANDLING
+### ERROR HANDLING
 
 
-BASIC
-```javascript
+#### BASIC
+```
 try {
   const data = await client.get({ uri: 'https://api.example.com/users' });
 } catch (error) {
   console.error(error.message);
   console.error(error.statusCode);
 }
-```javascript
+```
 
 
-DETAILED
-```javascript
+#### DETAILED
+```
 try {
   await client.post({
     uri: 'https://api.example.com/users',
@@ -194,13 +199,13 @@ try {
     body: error.body
   });
 }
-```javascript
+```
 
 
-RETRY LOGIC
+### RETRY LOGIC
 
 
-SMART RETRIES
+#### SMART RETRIES
 
 Only retries on:
 
@@ -214,7 +219,7 @@ Does NOT retry:
  * Invalid request body
 
 
-EXPONENTIAL BACKOFF
+#### EXPONENTIAL BACKOFF
 
 Attempt 1 → 1 second
 Attempt 2 → 2 seconds
@@ -224,7 +229,7 @@ Attempt 5+ → 30 seconds (capped)
 
 
 
-FEATURES
+## FEATURES
 
 ✅ Native Fetch API (no external dependencies)
 ✅ Unified options-based API with uri property
@@ -237,13 +242,13 @@ FEATURES
 ✅ Rich error context
 
 
-REQUIREMENTS
+## REQUIREMENTS
 
  * Node.js 18+
  * Native Fetch API enabled
 
 
-RETRYABLE STATUS CODES
+## RETRYABLE STATUS CODES
 
  * 408 Request Timeout
  * 429 Too Many Requests
@@ -253,56 +258,50 @@ RETRYABLE STATUS CODES
  * 504 Gateway Timeout
 
 
-TROUBLESHOOTING
+## TROUBLESHOOTING
 
 
-MISSING URI ERROR
-
+#### MISSING URI ERROR
+```
 // ❌ Wrong
-```javascript
 await client.get({ qs: { id: 123 } });
-```javascript
 
 // ✅ Correct
-```javascript
 await client.get({ uri: 'https://api.example.com/users', qs: { id: 123 } });
-```javascript
+```
 
 
-INVALID URI FORMAT
-
+#### INVALID URI FORMAT
+```
 // ❌ Wrong
-```javascript
 await client.get({ uri: 'not a url' });
-```javascript
 
 // ✅ Correct
-```javascript
 await client.get({ uri: 'https://api.example.com/users' });
-```javascript
+```
 
 
-REQUEST TIMEOUT
-```javascript
+#### REQUEST TIMEOUT
+```
 // Increase timeout for slow endpoints
 await client.get({
   uri: 'https://api.example.com/slow',
   timeout: 120000  // 2 minutes
 });
-```javascript
+```
 
 
-JSON PARSE ERROR
-```javascript
+#### JSON PARSE ERROR
+```
 // Disable JSON parsing for non-JSON responses
 await client.get({
   uri: 'https://api.example.com/data.xml',
   json: false
 });
-```javascript
+```
 
 
-BEST PRACTICES
+#### BEST PRACTICES
 
 ✅ Reuse HttpClient instances
 ✅ Configure appropriate timeout values
@@ -321,7 +320,7 @@ BEST PRACTICES
 ❌ Don't hardcode URLs
 
 
-SUPPORT
+#### SUPPORT
 
 
 This developer-focused guide is:
