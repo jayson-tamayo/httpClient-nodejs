@@ -8,11 +8,11 @@ A lightweight, reusable HTTP client for Node.js built on native Fetch API.
 
 ```javascript
 const client = require('./httpClient');
-
+```javascript
 
 
 BASIC USAGE
-
+```javascript
 // GET
 const users = await client.get({
   uri: 'https://api.example.com/users',
@@ -41,21 +41,21 @@ const patched = await client.patch({
 await client.delete({
   uri: 'https://api.example.com/users/123'
 });
-
+```javascript
 
 
 CONFIGURATION
 
 
 DEFAULT SINGLETON
-
+```javascript
 const client = require('./httpClient');
 // timeout: 30000ms, maxRetries: 3, retryDelay: 1000ms
-
+```javascript
 
 
 CUSTOM INSTANCE
-
+```javascript
 const { HttpClient } = require('./httpClient');
 
 const client = new HttpClient({
@@ -65,7 +65,7 @@ const client = new HttpClient({
   onRequest: (req) => console.log(`→ ${req.method} ${req.uri}`),
   onResponse: (res) => console.log(`← ${res.status}`)
 });
-
+```javascript
 
 
 API REFERENCE
@@ -96,26 +96,26 @@ COMMON EXAMPLES
 
 
 WITH QUERY PARAMETERS
-
+```javascript
 await client.get({
   uri: 'https://api.example.com/users',
   qs: { active: true, page: 1 }
 });
-
+```javascript
 
 
 WITH CUSTOM HEADERS
-
+```javascript
 await client.post({
   uri: 'https://api.example.com/users',
   body: { name: 'John' },
   headers: { 'X-Api-Key': 'secret', 'Authorization': 'Bearer token' }
 });
-
+```javascript
 
 
 WITH AUTHENTICATION
-
+```javascript
 // Bearer Token
 await client.get({
   uri: 'https://api.example.com/users',
@@ -127,22 +127,22 @@ await client.get({
   uri: 'https://api.example.com/users',
   headers: { 'X-Api-Key': apiKey }
 });
-
+```javascript
 
 
 PER-REQUEST OVERRIDES
-
+```javascript
 await client.get({
   uri: 'https://api.example.com/slow-endpoint',
   timeout: 120000,    // Override default timeout
   retry: 5,           // Override default retries
   retryDelay: 3000    // Override default delay
 });
-
+```javascript
 
 
 DIRECT REQUEST METHOD
-
+```javascript
 const response = await client.request({
   uri: 'https://api.example.com/data',
   method: 'POST',
@@ -153,25 +153,25 @@ const response = await client.request({
   retry: 3,
   json: true
 });
-
+```javascript
 
 
 ERROR HANDLING
 
 
 BASIC
-
+```javascript
 try {
   const data = await client.get({ uri: 'https://api.example.com/users' });
 } catch (error) {
   console.error(error.message);
   console.error(error.statusCode);
 }
-
+```javascript
 
 
 DETAILED
-
+```javascript
 try {
   await client.post({
     uri: 'https://api.example.com/users',
@@ -194,7 +194,7 @@ try {
     body: error.body
   });
 }
-
+```javascript
 
 
 RETRY LOGIC
@@ -259,41 +259,47 @@ TROUBLESHOOTING
 MISSING URI ERROR
 
 // ❌ Wrong
+```javascript
 await client.get({ qs: { id: 123 } });
+```javascript
 
 // ✅ Correct
+```javascript
 await client.get({ uri: 'https://api.example.com/users', qs: { id: 123 } });
-
+```javascript
 
 
 INVALID URI FORMAT
 
 // ❌ Wrong
+```javascript
 await client.get({ uri: 'not a url' });
+```javascript
 
 // ✅ Correct
+```javascript
 await client.get({ uri: 'https://api.example.com/users' });
-
+```javascript
 
 
 REQUEST TIMEOUT
-
+```javascript
 // Increase timeout for slow endpoints
 await client.get({
   uri: 'https://api.example.com/slow',
   timeout: 120000  // 2 minutes
 });
-
+```javascript
 
 
 JSON PARSE ERROR
-
+```javascript
 // Disable JSON parsing for non-JSON responses
 await client.get({
   uri: 'https://api.example.com/data.xml',
   json: false
 });
-
+```javascript
 
 
 BEST PRACTICES
